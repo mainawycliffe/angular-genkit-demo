@@ -1,0 +1,57 @@
+{
+  "name": "functions",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/functions/src",
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/functions/**/*.ts"],
+        "fix": true
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["coverage/apps/functions"],
+      "options": {
+        "jestConfig": "apps/functions/jest.config.ts",
+        "passWithNoTests": true,
+        "coverageDirectory": "coverage/apps/functions"
+      }
+    },
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "main": "apps/functions/src/index.ts",
+        "outputPath": "dist/apps/functions",
+        "outputFileName": "index.js",
+        "project": "apps/functions/package.json",
+        "tsConfig": "apps/functions/tsconfig.json",
+        "assets": [],
+        "platform": "node",
+        "dependenciesFieldType": "dependencies",
+        "thirdParty": false,
+        "generatePackageJson": true
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": true
+        }
+      }
+    },
+    "serve": {
+      "command": "firebase emulators:start --only functions"
+    },
+    "deploy": {
+      "command": "firebase deploy --only functions"
+    }
+  },
+  "tags": []
+}

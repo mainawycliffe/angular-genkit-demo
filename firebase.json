@@ -1,0 +1,26 @@
+{
+  "functions": [
+    {
+      "source": "dist/apps/functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "package-lock.json",
+        "pnpm-lock.yaml",
+        "yarn.lock",
+        "bun.lockb",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ],
+      "predeploy": [
+        "pnpm nx run functions:build",
+        "echo 'Functions built successfully.'"
+      ]
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
