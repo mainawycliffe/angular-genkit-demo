@@ -42,3 +42,5 @@ Thumbs.db
 .nx/workspace-data
 
 .angular
+firebase-debug.log
+.firebase/logs/vsce-debug.log
