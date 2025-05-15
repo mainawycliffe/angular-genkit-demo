@@ -60,7 +60,7 @@ export class AppComponent {
       if (!request.subject) {
         return;
       }
-      const callableFn = httpsCallable(this.functions, 'poem');
+      const callableFn = httpsCallable(this.functions, 'recommendBook');
       const res = await callableFn(request.subject);
       return res.data;
     },
