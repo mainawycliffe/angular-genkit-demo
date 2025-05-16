@@ -172,6 +172,14 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
        - define the retriever for the books collection in the database
 
          ```ts
+         import { defineFirestoreRetriever } from '@genkit-ai/firebase';
+         import googleAI, { textEmbedding004 } from '@genkit-ai/googleai';
+         import vertexAI from '@genkit-ai/vertexai';
+         import { initializeApp } from 'firebase-admin/app';
+         import { getFirestore } from 'firebase-admin/firestore';
+         import { defineSecret } from 'firebase-functions/params';
+         import { genkit } from 'genkit';
+
          initializeApp();
          const firestore = getFirestore();
 
