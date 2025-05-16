@@ -21,15 +21,15 @@ export const seedBooks = onRequest(
             metadata: {},
             content: `The title of the book is ${
               book.title
-            }. The author is/are ${book.authors.join(
+            }. The author(s) is/are ${book.authors.join(
               ', '
             )}. The description is ${
               book.longDescription
             }. The category is ${book.categories.join(
               ','
-            )}. The book was published in ${book.publishedDate}. The has ${
+            )}. The book was published on ${book.publishedDate}. The has ${
               book.pageCount ?? 'unknown number of '
-            } pages.`,
+            } pages. The books thumbnail url is ${book.thumbnailUrl}.`,
           })
         )[0].embedding;
 
