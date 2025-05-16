@@ -144,6 +144,8 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
 8. Next, deploy the function to Firebase.
 
    ```bash
+   // make sure you are in the root directory of the project
+   cd ..
    firebase deploy --only functions
    ```
 
