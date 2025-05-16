@@ -3,9 +3,7 @@ import {
   InjectionToken,
   provideZoneChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import { appRoutes } from './app.routes';
 
 export const FIREBASE_APP = new InjectionToken<FirebaseApp>('FIREBASE_APP');
 
@@ -23,7 +21,6 @@ const initializeFirebaseApp = () =>
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(appRoutes),
     {
       provide: FIREBASE_APP,
       useFactory: initializeFirebaseApp,

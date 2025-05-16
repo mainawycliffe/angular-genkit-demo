@@ -25,7 +25,7 @@ export const seedBooks = onRequest(
               ', '
             )}. The description is ${
               book.longDescription
-            }. The category is ${book.categories.join(
+            }. The books category(s) is/are ${book.categories.join(
               ','
             )}. The book was published on ${book.publishedDate}. The has ${
               book.pageCount ?? 'unknown number of '

@@ -6,10 +6,11 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import { genkit } from 'genkit';
 
+export const googleAIapiKey = defineSecret('GEMINI_API_KEY');
+
 initializeApp();
 const firestore = getFirestore();
 
-export const googleAIapiKey = defineSecret('GEMINI_API_KEY');
 
 export const ai = genkit({
   plugins: [googleAI(), vertexAI({ location: 'us-central1' })],

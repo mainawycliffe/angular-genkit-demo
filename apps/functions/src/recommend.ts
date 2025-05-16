@@ -30,8 +30,7 @@ const recommendBookFlow = ai.defineFlow(
     console.log('Retrieved documents:', docs);
 
     const { data, text, output } = await ai.generate({
-      prompt: `
-You are a library book recommendation engine, from my personal library. Recommend books based on the following subject: ${prompt}.
+      prompt: `You are a library book recommendation engine, from my personal library. Recommend books based on the following subject: ${prompt}.
 
 Please provide upto five book recommendations at a time.
 
@@ -52,13 +51,11 @@ Example response:
 ]
       
 Use only the context provided to answer the question.
-If you don't know, do not make up an answer.
-      `,
+If you don't know, do not make up an answer.`,
       docs: docs,
       output: {
         format: 'json',
         schema: z.array(recommendBookOutputSchema),
-        contentType: 'application/json',
       },
     });
     console.log('Final response:', data, text, output);
