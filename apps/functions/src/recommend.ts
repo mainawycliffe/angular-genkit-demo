@@ -30,28 +30,28 @@ const recommendBookFlow = ai.defineFlow(
     console.log('Retrieved documents:', docs);
 
     const { data, text, output } = await ai.generate({
-      prompt: `You are a library book recommendation engine, from my personal library. Recommend books based on the following subject: ${prompt}.
+      prompt: `You are a book recommendation engine for a personal library.
+  Your task is to recommend books based on the subject: ${prompt}.
+  You MUST ONLY recommend books that are explicitly present in the provided documents.
+  Do NOT invent or suggest any books not found in the documents.
+  Provide up to five book recommendations.
 
-Please provide upto five book recommendations at a time.
+  The output MUST be a JSON array of objects. Each object must have the following fields: "title", "author", "description", "isbn", and "id".
 
-The output should be a JSON array of object with the following fields: title, author, description, isbn, and id of each book in the response. 
-
-(All the fields are available in the documents retrieved from the database (metadata).)
-
-Avoid any additional commentary or information.
-Example response:
-[
-  {
+  Example of the required JSON output format:
+  [
+    {
     "isbn": "978-3-16-148410-0",
     "id": "1",
     "title": "Book Title",
     "description": "A brief description of the book.",
     "author": "Author Name"
-  }
-]
-      
-Use only the context provided to answer the question.
-If you don't know, do not make up an answer.`,
+    }
+  ]
+
+  Do not include any additional commentary, explanations, or information beyond the JSON array.
+  If no relevant books are found in the provided documents for the given subject, return an empty JSON array [].
+  Strictly use the information from the provided documents.`,
       docs: docs,
       output: {
         format: 'json',
