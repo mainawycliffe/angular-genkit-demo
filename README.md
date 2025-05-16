@@ -20,6 +20,8 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
   - [Genkit Documentation](https://genkit.dev/docs/getting-started)
 - Install Firebase CLI
   - [Firebase CLI Documentation](https://firebase.google.com/docs/cli)
+- Install Google Cloud SDK
+  - [Google Cloud SDK Documentation](https://cloud.google.com/sdk/docs/install)
 
 ## Setup
 
@@ -124,7 +126,16 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
    - Click on the "Get API Key" button, and create a new API key.
    - Copy the API key and paste it into the prompt when deploying the function.
 
-6. Next, deploy the function to Firebase.
+6. Next, create a firestore compound index for the vector field
+   `longDescription_Embedding` in the Firestore database.
+
+   ```bash
+    gcloud firestore indexes composite create --project=<project-name> --collection-group=books --query-scope=COLLECTION --field-config=vector-config='{"dimension":"768","flat": "{}"}',field-path=longDescription_Embedding
+   ```
+
+   - Replace `<project-name>` with the name of your Firebase project.
+
+7. Next, deploy the function to Firebase.
 
    ```bash
    firebase deploy --only functions
@@ -141,7 +152,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
    - You can also check the Firebase console to see if the function has been
      deployed successfully.
 
-7. Next, create a file `genkit.ts`, inside the `src/ai/` directory, in the
+8. Next, create a file `genkit.ts`, inside the `src/ai/` directory, in the
    functions, directory, the full path should be
    `functions/src/ai/genkit.ts`.
 
@@ -187,7 +198,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
    - We will then pass the results to the AI model to generate a possible
      recommendation for the user based on the books in the database.
 
-8. Next, create a file `recommend.ts`, inside the `src` directory, in the
+9. Next, create a file `recommend.ts`, inside the `src` directory, in the
    functions, directory, the full path should be
    `functions/src/recommend.ts`.
 
@@ -277,86 +288,86 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
    - This will deploy the function to Firebase and create a new secret for the
      Gemini API key, if you haven't done so already.
 
-9. Next, in our Angular app, in the `app.component.ts` file, we will remove all
-   the content of the `AppComponent` class and replace it with the following code:
+10. Next, in our Angular app, in the `app.component.ts` file, we will remove all
+    the content of the `AppComponent` class and replace it with the following code:
 
-   ```ts
-   @Component({
-     imports: [FormsModule, CommonModule],
-     selector: 'app-root',
-     // alternative, using template for Single File Component
-     // template: ``,
-     templateUrl: './app.component.html',
-   })
-   export class AppComponent {
-     // This is going to be bound to the input field, using the ngModel
-     bookSubject = '';
+```ts
+@Component({
+  imports: [FormsModule, CommonModule],
+  selector: 'app-root',
+  // alternative, using template for Single File Component
+  // template: ``,
+  templateUrl: './app.component.html',
+})
+export class AppComponent {
+  // This is going to be bound to the input field, using the ngModel
+  bookSubject = '';
 
-     // A signal to trigger HTTP request using the new resource API
-     subject = signal<string | undefined>(undefined);
+  // A signal to trigger HTTP request using the new resource API
+  subject = signal<string | undefined>(undefined);
 
-     // We will need to inject the firebase app and the functions, this will be initialized in the next step
-     firebaseApp = inject(FIREBASE_APP);
+  // We will need to inject the firebase app and the functions, this will be initialized in the next step
+  firebaseApp = inject(FIREBASE_APP);
 
-     // Get an instance of the firebase functions, using the firebase app
-     functions = getFunctions(this.firebaseApp);
+  // Get an instance of the firebase functions, using the firebase app
+  functions = getFunctions(this.firebaseApp);
 
-     // We use the resource API to create a resource that will be used to call the,
-     // we can access the loading, error and data states of the resource using the
-     // resource property of the class
-     resource = resource({
-       request: () => ({
-         // When the signal is updated, this will trigger the request
-         subject: this.subject(),
-       }),
-       // This is the function that will be called when the request is triggered
-       loader: async ({ request }) => {
-         if (!request.subject) {
-           return;
-         }
-         // We will use the httpsCallable function to call the firebase function
-         const callableFn = httpsCallable(this.functions, 'recommendBook');
-         const res = await callableFn(request.subject);
-         // We will return the data from the response
-         return res.data as Record<string, string>[];
-       },
-     });
-   }
-   ```
+  // We use the resource API to create a resource that will be used to call the,
+  // we can access the loading, error and data states of the resource using the
+  // resource property of the class
+  resource = resource({
+    request: () => ({
+      // When the signal is updated, this will trigger the request
+      subject: this.subject(),
+    }),
+    // This is the function that will be called when the request is triggered
+    loader: async ({ request }) => {
+      if (!request.subject) {
+        return;
+      }
+      // We will use the httpsCallable function to call the firebase function
+      const callableFn = httpsCallable(this.functions, 'recommendBook');
+      const res = await callableFn(request.subject);
+      // We will return the data from the response
+      return res.data as Record<string, string>[];
+    },
+  });
+}
+```
 
-   Then, we will create a template for the component, in the
-   `app.component.html` file, we will add the following code:
+Then, we will create a template for the component, in the
+`app.component.html` file, we will add the following code:
 
-   ```html
-   <div class="container">
-     <h1>Book Recommendation</h1>
-     <form (ngSubmit)="subject.set(bookSubject)" #bookForm="ngForm" class="form">
-       <input type="text" name="bookSubject" [(ngModel)]="bookSubject" placeholder="Enter a book subject" required />
-       <button type="submit" [disabled]="bookForm.invalid">Submit</button>
-     </form>
+```html
+<div class="container">
+  <h1>Book Recommendation</h1>
+  <form (ngSubmit)="subject.set(bookSubject)" #bookForm="ngForm" class="form">
+    <input type="text" name="bookSubject" [(ngModel)]="bookSubject" placeholder="Enter a book subject" required />
+    <button type="submit" [disabled]="bookForm.invalid">Submit</button>
+  </form>
 
-     @if(resource.loading()) {
-     <div class="loading">Loading...</div>
-     } @if(resource.error()) {
-     <div class="error">{{ resource.error() }}</div>
-     }
-     <!-- loop over the books content -->
-     @for(book of resource.data(); track book['id']) {
-     <div class="book">
-       <h2>{{ book.title }}</h2>
-       <p>{{ book.description }}</p>
-       <p>Book ID: {{ book.id }}</p>
-     </div>
-     } @empty {
-     <div class="empty">No books found</div>
-     }
-   </div>
-   ```
+  @if(resource.loading()) {
+  <div class="loading">Loading...</div>
+  } @if(resource.error()) {
+  <div class="error">{{ resource.error() }}</div>
+  }
+  <!-- loop over the books content -->
+  @for(book of resource.data(); track book['id']) {
+  <div class="book">
+    <h2>{{ book.title }}</h2>
+    <p>{{ book.description }}</p>
+    <p>Book ID: {{ book.id }}</p>
+  </div>
+  } @empty {
+  <div class="empty">No books found</div>
+  }
+</div>
+```
 
-   - This is a basic example, use your creativity to make it look better and
-     add more features.
+- This is a basic example, use your creativity to make it look better and
+  add more features.
 
-10. Inside the `src/app/app.config.ts` file, we will need to initialize the
+11. Inside the `src/app/app.config.ts` file, we will need to initialize the
     firebase app, then pass provide the app to the Angular app for dependency
     injection.
 
@@ -399,7 +410,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
     };
     ```
 
-11. Run the Angular app
+12. Run the Angular app
 
     ```bash
     ng serve
@@ -416,7 +427,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
     - You can also check the firestore database to see if the books data has
       been added successfully.
 
-12. Add more features, be creative and have fun with it.
+13. Add more features, be creative and have fun with it.
     - You can add more features to the app, such as:
       - Add a loading spinner while the request is being processed
       - Add error handling for the request
