@@ -64,7 +64,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
      import { onRequest } from 'firebase-functions/v2/https';
      // for googleAIAPIKey, see step 5, import it from the file you will create in step 5
      import { ai, indexConfig } from './ai/genkit';
-     import { googleAIapiKey } from './../secrets';
+     import { googleAIapiKey } from './secrets';
      import { books } from './data/books.cleaned';
 
      export const seedBooks = onRequest(
