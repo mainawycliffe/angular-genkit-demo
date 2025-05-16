@@ -63,14 +63,15 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
      import { FieldValue, getFirestore } from 'firebase-admin/firestore';
      import { onRequest } from 'firebase-functions/v2/https';
      // for googleAIAPIKey, see step 5, import it from the file you will create in step 5
-     import { ai, googleAIapiKey, indexConfig } from './ai/genkit';
+     import { ai, indexConfig } from './ai/genkit';
+     import { googleAIapiKey } from './../secrets';
      import { books } from './data/books.cleaned';
 
      export const seedBooks = onRequest(
        {
          timeoutSeconds: 900,
          // googleAIapiKey is a secret, so we need to pass it to the function
-         // see step 5
+         // see step 6
          secrets: [googleAIapiKey],
          memory: '1GiB',
        },
@@ -115,10 +116,8 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
    export { seedBooks } from './seed';
    ```
 
-   - Run firebase deploy to deploy the function to Firebase.
-
 6. Next, create a Firebase secret for the Gemini API Key (create this in a
-   separate file).
+   separate file) - `functions/src/secrets.ts`.
 
    ```ts
    import { defineSecret } from 'firebase-functions/params';
