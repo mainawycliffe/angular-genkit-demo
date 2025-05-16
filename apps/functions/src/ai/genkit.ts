@@ -11,7 +11,6 @@ export const googleAIapiKey = defineSecret('GEMINI_API_KEY');
 initializeApp();
 const firestore = getFirestore();
 
-
 export const ai = genkit({
   plugins: [googleAI(), vertexAI({ location: 'us-central1' })],
   model: googleAI.model('gemini-2.0-flash'), // set default model

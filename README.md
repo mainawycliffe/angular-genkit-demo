@@ -33,7 +33,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
 2. Install Genkit, Firebase, firebase-js
 
    ```bash
-    npm install genkit firebase firebase-js
+    npm install firebase
    ```
 
 3. Initialize Firebase
@@ -45,7 +45,14 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
    - Select Firestore
    - Select Functions
 
-4. Create a firebase functions for seeding the database with the books data [books.cleaned.ts](apps/functions/src/data/books.cleaned.ts)
+4. In your firebase functions directory, install the following dependencies:
+
+   ```bash
+   cd functions
+   npm install firebase-admin firebase-functions genkit zod @genkit-ai/vertexai @genkit-ai/googleai @genkit-ai/firebase
+   ```
+
+5. Create a firebase functions for seeding the database with the books data [books.cleaned.ts](apps/functions/src/data/books.cleaned.ts)
 
    - Create a new file in the `functions/src/data` directory called `books.cleaned.ts`
    - Copy the contents of the [following file](apps/functions/src/data/books.cleaned.ts) into `books.cleaned.ts`.
@@ -110,7 +117,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
 
    - Run firebase deploy to deploy the function to Firebase.
 
-5. Next, create a Firebase secret for the Gemini API Key (create this in a
+6. Next, create a Firebase secret for the Gemini API Key (create this in a
    separate file).
 
    ```ts
@@ -126,7 +133,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
    - Click on the "Get API Key" button, and create a new API key.
    - Copy the API key and paste it into the prompt when deploying the function.
 
-6. Next, create a firestore compound index for the vector field
+7. Next, create a firestore compound index for the vector field
    `longDescription_Embedding` in the Firestore database.
 
    ```bash
@@ -135,7 +142,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
 
    - Replace `<project-name>` with the name of your Firebase project.
 
-7. Next, deploy the function to Firebase.
+8. Next, deploy the function to Firebase.
 
    ```bash
    firebase deploy --only functions
@@ -152,7 +159,7 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
    - You can also check the Firebase console to see if the function has been
      deployed successfully.
 
-8. Next, create a file `genkit.ts`, inside the `src/ai/` directory, in the
+9. Next, create a file `genkit.ts`, inside the `src/ai/` directory, in the
    functions, directory, the full path should be
    `functions/src/ai/genkit.ts`.
 
@@ -198,97 +205,97 @@ This workshop is designed to get started with Genkit, Firebase and Angular.
    - We will then pass the results to the AI model to generate a possible
      recommendation for the user based on the books in the database.
 
-9. Next, create a file `recommend.ts`, inside the `src` directory, in the
-   functions, directory, the full path should be
-   `functions/src/recommend.ts`.
+10. Next, create a file `recommend.ts`, inside the `src` directory, in the
+    functions, directory, the full path should be
+    `functions/src/recommend.ts`.
 
-   - This file will import the retriever and the AI model from the `genkit.ts`
-     file
+    - This file will import the retriever and the AI model from the `genkit.ts`
+      file
 
-     ```ts
-     import { defineSecret } from 'firebase-functions/params';
-     import { googleAIapiKey } from './genkit';
-     ```
+      ```ts
+      import { defineSecret } from 'firebase-functions/params';
+      import { googleAIapiKey } from './genkit';
+      ```
 
-   - Next, we will create a Genkit Flow, that will take the user's prompt and
-     return a recommendation based on the books in the database.
+    - Next, we will create a Genkit Flow, that will take the user's prompt and
+      return a recommendation based on the books in the database.
 
-     ```ts
-     import { defineSecret } from 'firebase-functions/params';
-     import { googleAIapiKey } from './genkit';
-     import { ai, retriever } from './ai/genkit';
+      ```ts
+      import { defineSecret } from 'firebase-functions/params';
+      import { googleAIapiKey } from './genkit';
+      import { ai, retriever } from './ai/genkit';
 
-     // define the schema for the output of the recommendation
-     const recommendBookOutputSchema = z.object({
-       title: z.string(),
-       description: z.string(),
-       id: z.string(),
-     });
+      // define the schema for the output of the recommendation
+      const recommendBookOutputSchema = z.object({
+        title: z.string(),
+        description: z.string(),
+        id: z.string(),
+      });
 
-     const recommendBookFlow = ai.defineFlow(
-       {
-         name: 'generatePoem',
-         inputSchema: z.string(),
-         outputSchema: z.array(recommendBookOutputSchema),
-       },
-       async (prompt) => {
-         // IMPLEMENTATION
-         // Using vector search to find similar books from the database
-         const docs = await ai.retrieve({
-           retriever,
-           // We use the prompt as the query to find similar books
-           query: prompt,
-           options: {
-             limit: 10, // Options: Return up to 10 documents
-           },
-         });
+      const recommendBookFlow = ai.defineFlow(
+        {
+          name: 'generatePoem',
+          inputSchema: z.string(),
+          outputSchema: z.array(recommendBookOutputSchema),
+        },
+        async (prompt) => {
+          // IMPLEMENTATION
+          // Using vector search to find similar books from the database
+          const docs = await ai.retrieve({
+            retriever,
+            // We use the prompt as the query to find similar books
+            query: prompt,
+            options: {
+              limit: 10, // Options: Return up to 10 documents
+            },
+          });
 
-         // We will then call the AI model to generate a recommendation based on the
-         // books in the database, passing the results of the vector search
-         const { output } = await ai.generate({
-           prompt: '',
-           docs: docs,
-           output: {
-             format: 'json',
-             schema: z.array(recommendBookOutputSchema),
-           },
-         });
-         console.log('Final response:', data, text, output);
-         return output;
-       }
-     );
+          // We will then call the AI model to generate a recommendation based on the
+          // books in the database, passing the results of the vector search
+          const { output } = await ai.generate({
+            prompt: '',
+            docs: docs,
+            output: {
+              format: 'json',
+              schema: z.array(recommendBookOutputSchema),
+            },
+          });
+          console.log('Final response:', data, text, output);
+          return output;
+        }
+      );
 
-     // Define the firebase function to call the flow, pass the Gemini API key secret
+      // Define the firebase function to call the flow, pass the Gemini API key secret
 
-     export const recommendBook = onCallGenkit(
-       {
-         // we need to pass the secret to the function
-         secrets: [googleAIapiKey],
-       },
-       recommendBookFlow
-     );
-     ```
+      export const recommendBook = onCallGenkit(
+        {
+          // we need to pass the secret to the function
+          secrets: [googleAIapiKey],
+        },
+        recommendBookFlow
+      );
+      ```
 
-   - This code will create a Genkit Flow that will take the user's prompt and
-     return a recommendation based on the books in the database.
-   - make sure to export the function in your index file:
+    - This code will create a Genkit Flow that will take the user's prompt and
+      return a recommendation based on the books in the database.
+    - make sure to export the function in your index file:
 
-   ```ts
-   export { recommendBook } from './recommend';
-   ```
+    ```ts
+    export { recommendBook } from './recommend';
+    ```
 
-   - This will export the function and make it available to be called from the
-     client.
-   - Run firebase deploy to deploy the function to Firebase.
+    - This will export the function and make it available to be called from the
+      client.
+    - Run firebase deploy to deploy the function to Firebase.
 
-   ```bash
-   firebase deploy --only functions
-   ```
+    ```bash
+    firebase deploy --only functions
+    ```
 
-   - This will deploy the function to Firebase and create a new secret for the
-     Gemini API key, if you haven't done so already.
+    - This will deploy the function to Firebase and create a new secret for the
+      Gemini API key, if you haven't done so already.
 
-10. Next, in our Angular app, in the `app.component.ts` file, we will remove all
+11. Next, in our Angular app, in the `app.component.ts` file, we will remove all
     the content of the `AppComponent` class and replace it with the following code:
 
 ```ts
@@ -367,7 +374,7 @@ Then, we will create a template for the component, in the
 - This is a basic example, use your creativity to make it look better and
   add more features.
 
-11. Inside the `src/app/app.config.ts` file, we will need to initialize the
+12. Inside the `src/app/app.config.ts` file, we will need to initialize the
     firebase app, then pass provide the app to the Angular app for dependency
     injection.
 
@@ -410,7 +417,7 @@ Then, we will create a template for the component, in the
     };
     ```
 
-12. Run the Angular app
+13. Run the Angular app
 
     ```bash
     ng serve
@@ -427,7 +434,7 @@ Then, we will create a template for the component, in the
     - You can also check the firestore database to see if the books data has
       been added successfully.
 
-13. Add more features, be creative and have fun with it.
+14. Add more features, be creative and have fun with it.
     - You can add more features to the app, such as:
       - Add a loading spinner while the request is being processed
       - Add error handling for the request
