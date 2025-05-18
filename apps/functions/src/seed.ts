@@ -14,24 +14,27 @@ export const seedBooks = onRequest(
 
     const resSeed = await Promise.allSettled(
       books.map(async (book) => {
-        const embedding = (
-          await ai.embed({
-            embedder: indexConfig.embedder,
-            options: {},
-            metadata: {},
-            content: `The title of the book is ${
-              book.title
-            }. The author(s) is/are ${book.authors.join(
-              ', '
-            )}. The description is ${
-              book.longDescription
-            }. The books category(s) is/are ${book.categories.join(
-              ','
-            )}. The book was published on ${book.publishedDate}. The has ${
-              book.pageCount ?? 'unknown number of '
-            } pages. The books thumbnail url is ${book.thumbnailUrl}.`,
-          })
-        )[0].embedding;
+        const embedding =
+          // We create an embedding field for the longDescription of the book,
+          // so we can use it for vector search later.
+          (
+            await ai.embed({
+              embedder: indexConfig.embedder,
+              options: {},
+              metadata: {},
+              content: `The title of the book is ${
+                book.title
+              }. The author(s) is/are ${book.authors.join(
+                ', '
+              )}. The description is ${
+                book.longDescription
+              }. The books category(s) is/are ${book.categories.join(
+                ','
+              )}. The book was published on ${book.publishedDate}. The has ${
+                book.pageCount ?? 'unknown number of '
+              } pages. The books thumbnail url is ${book.thumbnailUrl}.`,
+            })
+          )[0].embedding;
 
         return firestore.collection('books').add({
           ...book,

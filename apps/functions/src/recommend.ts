@@ -19,6 +19,10 @@ const recommendBookFlow = ai.defineFlow(
     outputSchema: z.array(recommendBookOutputSchema),
   },
   async (prompt) => {
+    // 1. We start by finding relevant books in the database. For this, we do a
+    //    vector search using the retriever, passing the prompt as the query.
+    // 2. The retriever will return a list of documents that are relevant to the
+    //    prompt. We can limit the number of documents returned to a maximum of 10.
     const docs = await ai.retrieve({
       retriever,
       query: prompt,
@@ -30,6 +34,11 @@ const recommendBookFlow = ai.defineFlow(
     console.log('Retrieved documents:', docs);
 
     const { data, text, output } = await ai.generate({
+      // 3. We define the prompt for the AI model. The prompt includes the task
+      //    of recommending books based on the subject provided in the prompt.
+      //    We must only recommend books that are explicitly present in the
+      //    provided documents and not invent or suggest any books not found
+      //    in the documents.
       prompt: `You are a book recommendation engine for a personal library.
   Your task is to recommend books based on the subject: ${prompt}.
   You MUST ONLY recommend books that are explicitly present in the provided documents.
@@ -52,13 +61,25 @@ const recommendBookFlow = ai.defineFlow(
   Do not include any additional commentary, explanations, or information beyond the JSON array.
   If no relevant books are found in the provided documents for the given subject, return an empty JSON array [].
   Strictly use the information from the provided documents.`,
+      // 4. We pass the documents retrieved in step 1 to the AI model as context.
+      //    This allows the model to use the information from these documents
+      //    to generate the recommendations.
       docs: docs,
+      // 5. We specify the output format and schema for the AI model's response.
+      //    The output should be a JSON array of objects, each containing the
+      //    fields "title", "author", "description", "isbn", and "id". as
+      //    specified in the prompt.
       output: {
         format: 'json',
         schema: z.array(recommendBookOutputSchema),
       },
     });
+
     console.log('Final response:', data, text, output);
+
+    // 6. We return the output of the AI model as the final response of the
+    //    function. The output will be a JSON array of book recommendations
+    //    based on the subject provided in the prompt.
     return output.map((book) => ({
       ...book,
       thumbnailUrl: docs.find((doc) => doc.metadata.id === book.id)?.metadata
