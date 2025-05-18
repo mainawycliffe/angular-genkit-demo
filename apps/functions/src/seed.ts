@@ -14,6 +14,21 @@ export const seedBooks = onRequest(
 
     const resSeed = await Promise.allSettled(
       books.map(async (book) => {
+        const content = `The title of the book is ${
+          book.title
+        }. The author(s) is/are ${book.authors.join(
+          ', '
+        )}. The description is ${
+          book.longDescription
+        }. The books category(s) is/are ${book.categories.join(
+          ','
+        )}. The book was published on ${book.publishedDate}. The has ${
+          book.pageCount ?? 'unknown number of '
+        } pages. The books thumbnail url is ${book.thumbnailUrl}.`
+          // remove new lines
+          .split('/n')
+          .join(' ');
+
         const embedding =
           // We create an embedding field for the longDescription of the book,
           // so we can use it for vector search later.
@@ -22,23 +37,14 @@ export const seedBooks = onRequest(
               embedder: indexConfig.embedder,
               options: {},
               metadata: {},
-              content: `The title of the book is ${
-                book.title
-              }. The author(s) is/are ${book.authors.join(
-                ', '
-              )}. The description is ${
-                book.longDescription
-              }. The books category(s) is/are ${book.categories.join(
-                ','
-              )}. The book was published on ${book.publishedDate}. The has ${
-                book.pageCount ?? 'unknown number of '
-              } pages. The books thumbnail url is ${book.thumbnailUrl}.`,
+              content,
             })
           )[0].embedding;
 
-        return firestore.collection('books').add({
+        return firestore.doc(`books/${book.id}`).set({
           ...book,
-          longDescription_Embedding: FieldValue.vector(embedding),
+          contentEmbedding: FieldValue.vector(embedding),
+          content,
         });
       })
     );
