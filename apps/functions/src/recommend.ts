@@ -33,7 +33,7 @@ const recommendBookFlow = ai.defineFlow(
 
     console.log('Retrieved documents:', docs);
 
-    const { data, text, output } = await ai.generate({
+    const { output } = await ai.generate({
       // 3. We define the prompt for the AI model. The prompt includes the task
       //    of recommending books based on the subject provided in the prompt.
       //    We must only recommend books that are explicitly present in the
@@ -75,7 +75,7 @@ const recommendBookFlow = ai.defineFlow(
       },
     });
 
-    console.log('Final response:', data, text, output);
+    console.log('Final response:', output);
 
     // 6. We return the output of the AI model as the final response of the
     //    function. The output will be a JSON array of book recommendations

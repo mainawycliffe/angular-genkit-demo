@@ -19,7 +19,7 @@ export const ai = genkit({
 export const indexConfig = {
   collection: 'books',
   contentField: 'content',
-  vectorField: 'content_Embedding',
+  vectorField: 'contentEmbedding',
   embedder: textEmbedding004,
 };
 
@@ -28,7 +28,7 @@ export const retriever = defineFirestoreRetriever(ai, {
   firestore,
   collection: 'books', // Collection to query
   contentField: 'content', // Field containing document content
-  vectorField: 'content_Embedding', // Field containing vector embeddings
+  vectorField: 'contentEmbedding', // Field containing vector embeddings
   embedder: textEmbedding004, // Embedder to generate embeddings
   distanceMeasure: 'COSINE', // Default is 'COSINE'; other options: 'EUCLIDEAN', 'DOT_PRODUCT'
 });
