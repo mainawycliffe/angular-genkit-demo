@@ -90,7 +90,7 @@ import { FIREBASE_APP } from './app.config';
             placeholder="What kind of book do you want to read?"
           />
           <button
-            (click)="poem.set(bookSubject)"
+            (click)="resource.reload()"
             class="p-2 px-4 bg-blue-500 text-white rounded min-w-max"
             [disabled]="!bookSubject || resource.isLoading()"
           >
